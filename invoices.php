@@ -1,23 +1,23 @@
 <?php
-// Fatura hesaplama ve veritabanı işlemleri için gerekli fonksiyonları dahil et
+// Include functions required for invoice calculation and database operations
 include 'invoice_operations.php'; 
 
-// Siparişleri al
+// Receive orders
 $orders = getOrders();
 
-// Faturaları hesapla
+// Calculate bills
 $invoices = calculateInvoices($orders);
 
-// En fazla harcama yapan müşteriyi bul
-$topCustomer = getTopCustomer($invoices); // ID ve toplam harcamayı al
+// Find the highest spending customer
+$topCustomer = getTopCustomer($invoices); // Get ID and total spend
 
-// HTML Görünümü
+// HTML
 echo "<!DOCTYPE html>
 <html lang='tr'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Fatura Sistemi</title>
+    <title>Invoice System</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -39,7 +39,7 @@ echo "<!DOCTYPE html>
             border-radius: 8px;
             overflow: hidden;
             display: flex;
-            flex-direction: column; /* Yatayda değil, dikeyde düzenleme yapıyoruz */
+            flex-direction: column;
         }
         h2 {
             font-size: 32px;
@@ -76,7 +76,7 @@ echo "<!DOCTYPE html>
             font-weight: bold;
         }
         .paid-amount {
-            color: #2ecc71; /* Yeşil renk */
+            color: #2ecc71;
             font-weight: bold;
         }
         .button {
@@ -87,40 +87,37 @@ echo "<!DOCTYPE html>
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
-            align-self: flex-start; /* Butonu sola hizalamak için */
+            align-self: flex-start;
         }
         .button:hover {
             background-color: #2980b9;
         }
 
-        /* Üstteki tabloya sınırlı yükseklik */
         table {
-            max-height: 300px; /* Üstteki tablonun boyutunu sınırlıyoruz */
-            overflow-y: auto; /* Tablo yüksekliğini aştığında kaydırma çubuğu eklenir */
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        /* Alt kısmı iki farklı genişlikte parçalara ayırma */
         .bottom-section {
             display: flex;
-            width: 100%; /* bottom-section genişliği %100 yapıldı */
-            flex-wrap: wrap; /* Kolonların taşmasını engellemek için wrap özelliği eklendi */
+            width: 100%;
+            flex-wrap: wrap;
         }
 
         .bottom-column {
-            box-sizing: border-box; /* Padding hesaplamaları box-sizing ile kontrol edilecek */
-            max-height: 300px; /* Alt tablolara yükseklik sınırlaması */
-            overflow-y: auto; /* Yüksekliği aştığında kaydırma çubuğu eklenir */
+            box-sizing: border-box;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        /* İlk kolon %60 genişlik, ikinci kolon %40 genişlik */
         .left-column {
-            flex: 0 0 60%; /* İlk kolon %60 */
-            padding-right: 10px; /* Sağ tarafa boşluk ekledik */
+            flex: 0 0 60%;
+            padding-right: 10px;
         }
 
         .right-column {
-            flex: 0 0 40%; /* İkinci kolon %40 */
-            padding-left: 10px; /* Sol tarafa boşluk ekledik */
+            flex: 0 0 40%;
+            padding-left: 10px;
         }
 
         .bottom-column h3 {
@@ -154,17 +151,17 @@ echo "<!DOCTYPE html>
 </head>
 <body>
     <div class='container'>
-        <h2>Müşteri Faturaları</h2>
+        <h2>Customer Invoices</h2>
         <table>
             <tr>
-                <th>Müşteri ID</th>
-                <th>Fatura Numarası</th>
-                <th>Toplam Tutar</th>
-                <th>İndirim Miktarı</th>
-                <th>Ödenen Tutar</th>
+                <th>Customer ID</th>
+                <th>Invoice Number</th>
+                <th>Total Amount</th>
+                <th>Discount Amount</th>
+                <th>Amount Paid</th>
             </tr>";
 
-            // Faturaları listele
+            // List invoices
             foreach ($invoices as $invoice) {
                 echo "<tr>
                     <td>{$invoice['customer_id']}</td>
@@ -177,15 +174,15 @@ echo "<!DOCTYPE html>
 
         echo "</table>";
 
-        // Sayfanın alt kısmını iki farklı genişlikte parçalara ayırma
+        // Splitting the bottom of the page into two different widths
         echo "<div class='bottom-section'>";
 
-        // En iyi müşteri için sol kısım
+        // Left side for best customer
         echo "<div class='bottom-column left-column'>
                 <table>
                     <tr>
-                        <th>En İyi Müşteri ID</th>
-                        <th>Toplam Harcama</th>
+                        <th>Best Customer ID</th>
+                        <th>Total Expenditure</th>
                     </tr>
                     <tr>
                         <td>{$topCustomer['customer_id']}</td>
@@ -194,12 +191,12 @@ echo "<!DOCTYPE html>
                 </table>
               </div>";
 
-        // Müşterilerden elde edilen toplam kazanç için sağ kısım
-        $totalRevenue = array_sum(array_column($invoices, 'total_amount')); // Toplam kazanç
+        // Right side for total revenue from customers
+        $totalRevenue = array_sum(array_column($invoices, 'total_amount')); // Total earnings
         echo "<div class='bottom-column right-column'>
                 <table>
                     <tr>
-                        <th>Toplam Kazanç</th>
+                        <th>Total Earnings</th>
                     </tr>
                     <tr>
                         <td>" . number_format($totalRevenue, 2) . " TL</td>
@@ -207,9 +204,9 @@ echo "<!DOCTYPE html>
                 </table>
               </div>";
 
-        echo "</div>"; // bottom-section div sonu
+        echo "</div>"; // bottom-section div end
 
-        echo "<a href='invoices.php' class='button'>Geri Git</a>
+        echo "<a href='invoices.php' class='button'>Go Back</a>
     </div>
 </body>
 </html>";
