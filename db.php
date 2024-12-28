@@ -1,17 +1,15 @@
 <?php
-// db.php - Veritabanı bağlantısı
-
 $servername = "localhost";
-$username = "root"; // XAMPP için varsayılan kullanıcı adı
-$password = ""; // XAMPP için varsayılan şifre
-$dbname = "invoice_system"; // Veritabanı adı
+$username = "root"; // Default username for XAMPP
+$password = ""; // Default password for XAMPP
+$dbname = "invoice_system"; // DB Name
 
-// PDO ile veritabanına bağlanma
+// Connecting to database with PDO
 try {
     $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    echo "Veritabanı bağlantısı sağlanamadı: " . $e->getMessage();
+    echo "Database connection failed: " . $e->getMessage();
     die();
 }
 ?>
