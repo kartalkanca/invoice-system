@@ -1,19 +1,18 @@
 <?php
-// Veritabanı bağlantısı
-include 'db.php'; // Veritabanı bağlantısını dahil et
+include 'db.php'; // Include database connection
 
-// Siparişleri veritabanından çekme
+// Retrieve orders from database
 function getOrders() {
     global $pdo;
     $orders = [];
-    $query = "SELECT * FROM orders WHERE order_date BETWEEN '2024-01-01' AND '2024-12-31'"; // Örnek tarih aralığı
+    $query = "SELECT * FROM orders WHERE order_date BETWEEN '2024-01-01' AND '2024-12-31'"; // Sample date range
     $stmt = $pdo->prepare($query);
     $stmt->execute();
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $orders;
 }
 
-// Müşteri bazında gruplayıp faturaları hesaplama
+// Grouping and calculating invoices based on customers
 function calculateInvoices($orders) {
     $customers = [];
     
@@ -21,41 +20,41 @@ function calculateInvoices($orders) {
         $customerId = $order['customer_id'];
         if (!isset($customers[$customerId])) {
             $customers[$customerId] = [
-                'total_amount_without_discount' => 0, // İndirimsiz toplam
-                'total_amount' => 0, // İndirimli toplam
+                'total_amount_without_discount' => 0, // Total without discount
+                'total_amount' => 0, // Discounted total
                 'orders' => [],
                 'discount' => 0,
-                'last_order_date' => $order['order_date'], // İlk siparişin tarihini al
+                'last_order_date' => $order['order_date'], // First order
             ];
         }
         $customers[$customerId]['orders'][] = $order;
-        $customers[$customerId]['total_amount_without_discount'] += $order['amount']; // İndirimsiz toplam tutar
-        $customers[$customerId]['total_amount'] += $order['amount']; // İndirimli toplam tutar (ilk başta aynı)
+        $customers[$customerId]['total_amount_without_discount'] += $order['amount']; // Total amount without discount
+        $customers[$customerId]['total_amount'] += $order['amount']; // Total amount discounted (same as at first)
 
-        // En son sipariş tarihini güncelle
+        // Update latest order date
         if ($order['order_date'] > $customers[$customerId]['last_order_date']) {
             $customers[$customerId]['last_order_date'] = $order['order_date'];
         }
     }
 
-    // İndirim uygulama ve toplam fatura tutarını güncelleme
+    // Apply discounts and update total invoice amount
     $invoices = [];
     foreach ($customers as $customerId => $customerData) {
         $totalAmountWithoutDiscount = $customerData['total_amount_without_discount'];
         $totalAmount = $customerData['total_amount'];
         $discount = 0;
 
-        // Eğer toplam tutar 500 TL'nin üzerinde ise %10 indirim uygulanır
+        // If the total amount is over 500 TL, a 10% discount is applied
         if ($totalAmountWithoutDiscount > 500) {
             $discount = $totalAmountWithoutDiscount * 0.1;
-            $totalAmount -= $discount; // İndirimli tutar
+            $totalAmount -= $discount; // Discounted amount
         }
 
         $invoices[] = [
             'customer_id' => $customerId,
             'invoice_number' => "FTR-{$customerId}-{$customerData['last_order_date']}",
-            'total_amount_without_discount' => $totalAmountWithoutDiscount, // İndirimsiz toplam tutar
-            'total_amount' => $totalAmount, // İndirimli toplam tutar
+            'total_amount_without_discount' => $totalAmountWithoutDiscount, // Total amount without discount
+            'total_amount' => $totalAmount, // Total discounted amount
             'discount' => $discount,
         ];
     }
@@ -63,7 +62,7 @@ function calculateInvoices($orders) {
     return $invoices;
 }
 
-// En fazla alışveriş yapan müşteriyi bulma ve toplam harcamasını döndürme
+// Find the customer who made the most purchases
 function getTopCustomer($invoices) {
     $customerTotals = [];
     foreach ($invoices as $invoice) {
@@ -71,7 +70,7 @@ function getTopCustomer($invoices) {
             ($customerTotals[$invoice["customer_id"]] ?? 0) + $invoice["total_amount"];
     }
     
-    // En fazla harcama yapan müşteri
+    // Highest spending customer
     arsort($customerTotals);
     $topCustomerId = array_key_first($customerTotals);
     $topCustomerTotal = $customerTotals[$topCustomerId];
